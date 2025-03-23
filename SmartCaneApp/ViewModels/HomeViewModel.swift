@@ -1,8 +1,10 @@
-//
-//  HomeViewModel.swift
-//  SmartCaneApp
-//
-//  Created by John Milton Ponce on 3/22/25.
-//
-
 import Foundation
+import SwiftUI
+
+class HomeViewModel: ObservableObject {
+    @Published var navigateToSearch = false
+
+    func goToSearch() {
+        navigateToSearch = true
+    }
+}
