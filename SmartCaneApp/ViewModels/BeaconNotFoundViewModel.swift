@@ -1,8 +1,11 @@
-//
-//  BeaconNotFoundViewModel.swift
-//  SmartCaneApp
-//
-//  Created by John Milton Ponce on 3/22/25.
-//
-
+import SwiftUI
 import Foundation
+
+class BeaconNotFoundViewModel: ObservableObject {
+    @Published var navigateToHome = false
+    
+    func goToHome() {
+        navigateToHome = true
+    }
+
+}

@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		E9306DB22D90A29100840C61 /* SmartCaneApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SmartCaneApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E9306DB22D90A29100840C61 /* SmartCaneApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = SmartCaneApp.app; path = "/Users/johnponce/Downloads/UOP_Files🚨/Class_Files/COMP 195/SmartCaneApp/build/Debug-iphoneos/SmartCaneApp.app"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -33,7 +33,6 @@
 			isa = PBXGroup;
 			children = (
 				E9FA92362D82440100E81643 /* SmartCaneApp */,
-				E9306DB22D90A29100840C61 /* SmartCaneApp.app */,
 			);
 			sourceTree = "<group>";
 		};

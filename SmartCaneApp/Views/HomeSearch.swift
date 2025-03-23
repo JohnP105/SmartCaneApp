@@ -1,12 +1,16 @@
 import SwiftUI
 
 struct HomeSearch: View {
-    @StateObject private var viewModel = HomeSearchViewModel()
+    @StateObject private var viewModel: HomeSearchViewModel
     
     // Animations
     @State private var animateCircle = false
     @State private var animateRipple = false
     @State private var animateDots = false
+
+    init(startInSearchMode: Bool = false) {
+        _viewModel = StateObject(wrappedValue: HomeSearchViewModel(isSearching: startInSearchMode))
+    }
 
     var body: some View {
         let screenWidth = UIScreen.main.bounds.width
@@ -19,6 +23,24 @@ struct HomeSearch: View {
                 LinearGradient(gradient: Gradient(colors: [Color.blue.opacity(0.3), Color.blue.opacity(1.0)]),
                                startPoint: .top, endPoint: .bottom)
                 .edgesIgnoringSafeArea(.all)
+                
+                // Close Button ("X" to go back) - Only in Search Mode
+                if viewModel.isSearching {
+                    Button(action: {
+                        viewModel.stopSearching()
+                        animateRipple = false
+                    }) {
+                        Circle()
+                            .fill(Color.black.opacity(0.2))
+                            .frame(width: 40, height: 40)
+                            .overlay(
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(.white)
+                            )
+                    }
+                    .position(x: screenWidth - 50, y: screenHeight / 20)
+                }
                 
                 // Conditionally Render UI for Home or Search Mode
                 if !viewModel.isSearching {
@@ -118,26 +140,7 @@ struct HomeSearch: View {
                 }
                 .multilineTextAlignment(.center)
                 .position(x: screenWidth / 2, y: screenHeight * 0.7)
-
-                // Close Button ("X" to go back) - Only in Search Mode
-                if viewModel.isSearching {
-                    Button(action: {
-                        viewModel.stopSearching()
-                        animateRipple = false
-                    }) {
-                        Circle()
-                            .fill(Color.black.opacity(0.2))
-                            .frame(width: 40, height: 40)
-                            .overlay(
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 18, weight: .bold))
-                                    .foregroundColor(.white)
-                            )
-                    }
-                    .position(x: screenWidth - 50, y: screenHeight / 20)
-                }
             }
-            .transition(.move(edge: .leading)) // Moves left when switching
             .navigationBarBackButtonHidden(true)
         }
     }
@@ -145,5 +148,5 @@ struct HomeSearch: View {
 
 // Preview
 #Preview {
-    HomeSearch()
+    HomeSearch(startInSearchMode: false)
 }
