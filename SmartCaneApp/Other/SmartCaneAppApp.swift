@@ -4,7 +4,7 @@ import SwiftUI
 struct SmartCaneAppApp: App {
     var body: some Scene {
         WindowGroup {
-            Home()
+            HomeSearch()
         }
     }
 }
