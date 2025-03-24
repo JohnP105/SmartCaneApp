@@ -56,7 +56,7 @@ struct HomeSearch: View {
                     
                     // Searching State: Dots + "Searching..."
                     else if viewModel.searchState == .searching {
-                        VStack(spacing: 35) { // Ensure vertical spacing
+                        VStack(spacing: 5) { // Ensure vertical spacing
                             HStack(spacing: 5) {
                                 ForEach(0..<4, id: \.self) { index in
                                     Circle()
@@ -67,14 +67,14 @@ struct HomeSearch: View {
                                         .animation(Animation.easeInOut(duration: 0.65).repeatForever().delay(Double(index) * 0.2), value: animateDots)
                                 }
                             }
-                            .onAppear { animateDots = true }
-
                             Text("Searching...")
                                 .font(.system(size: 30, weight: .semibold)) // Adjust size if needed
                                 .foregroundColor(.white)
                         }
-                        .frame(maxWidth: .infinity) // Ensures the VStack takes full width
-
+                        .task { // Ensures animations start properly even on first load
+                            try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+                            animateDots = true
+                        }
                     }
                 }
                 .frame(height: 80) // Ensures both states take up the same space
@@ -101,10 +101,14 @@ struct HomeSearch: View {
 
                             SmartCaneIcon()
                         }
-                        .onAppear { animateCircle = true }
                     }
                     .buttonStyle(PlainButtonStyle())
                     .disabled(viewModel.searchState == .searching)
+                    .task {
+                        try? await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds delay
+                        animateCircle = true
+                    }
+
                     .background(
                         // Ripple Effect as a Background to Avoid Layout Issues
                         ZStack {
