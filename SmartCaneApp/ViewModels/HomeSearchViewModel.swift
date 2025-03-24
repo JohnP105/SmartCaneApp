@@ -1,24 +1,50 @@
 import SwiftUI
 import Foundation
 
-class HomeSearchViewModel: ObservableObject {
-    @Published var isSearching: Bool
+enum SearchState {
+    case idle
+    case searching
+    case success
+    case failure
+}
 
-    init(isSearching: Bool = false) {
-        self.isSearching = isSearching
+class HomeSearchViewModel: ObservableObject {
+    @Published var searchState: SearchState = .idle
+    private var searchTask: DispatchWorkItem?
+    
+    init(startInSearchMode: Bool = false) {
+        if startInSearchMode {
+            startSearching()
+        }
     }
 
-    // Function to switch to search mode
     func startSearching() {
         withAnimation {
-            isSearching = true
+            searchState = .searching
         }
+
+        // Cancel any existing search task before starting a new one
+        searchTask?.cancel()
+
+        let task = DispatchWorkItem {
+           // let foundBeacon = Bool.random() // Simulate success or failure
+            let foundBeacon = false
+
+            DispatchQueue.main.async {
+                withAnimation {
+                    self.searchState = foundBeacon ? .success : .failure
+                }
+            }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: task)
+        searchTask = task
     }
 
-    // Function to return to home mode
     func stopSearching() {
         withAnimation {
-            isSearching = false
+            searchState = .idle
         }
+        searchTask?.cancel() // Cancel the pending navigation task
     }
 }

@@ -1,13 +1,14 @@
 import SwiftUI
 
-struct BeaconNotFoundView: View {
+struct BeaconNotFound: View {
+    @EnvironmentObject private var navViewModel: NavigationViewModel
     @StateObject private var viewModel = BeaconNotFoundViewModel()
 
     var body: some View {
         ZStack {
             // Close Button ("X" to go back) - Redirect to Home
             Button(action: {
-                viewModel.goToHome()
+                navViewModel.navigate(to: .homeSearch(startInSearchMode: false))
             }) {
                 Circle()
                     .fill(Color.gray.opacity(0.15))
@@ -43,7 +44,7 @@ struct BeaconNotFoundView: View {
 
                 // Try Again Button
                 Button(action: {
-                    viewModel.retrySearching()
+                    navViewModel.navigate(to: .homeSearch(startInSearchMode: true))
                 }) {
                     Text("Try Again")
                         .font(.system(size: 20, weight: .bold))
@@ -56,16 +57,11 @@ struct BeaconNotFoundView: View {
                 .padding(.top, 10)
             }
         }
-        .fullScreenCover(isPresented: $viewModel.navigateToHome) {
-            HomeSearch(startInSearchMode: false)
-        }
-        .fullScreenCover(isPresented: $viewModel.retrySearch) {
-            HomeSearch(startInSearchMode: true)
-        }
     }
 }
 
 // Preview
 #Preview {
-    BeaconNotFoundView()
+    BeaconNotFound()
+        .environmentObject(NavigationViewModel()) // Provide a mock instance for preview
 }
