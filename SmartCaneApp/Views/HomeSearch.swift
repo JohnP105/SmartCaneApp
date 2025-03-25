@@ -102,7 +102,7 @@ struct HomeSearch: View {
                             if viewModel.searchState == .searching {
                                 ForEach(0..<4, id: \.self) { index in
                                     Circle()
-                                        .stroke(Color.blue.opacity(0.5), lineWidth: 1)
+                                        .stroke(Color.blue.opacity(0.5), lineWidth: 2)
                                         .frame(width: circleSize * (1.5 + CGFloat(index) * 0.5),
                                                height: circleSize * (1.5 + CGFloat(index) * 0.5))
                                         .scaleEffect(animateRipple ? 1.3 : 1)

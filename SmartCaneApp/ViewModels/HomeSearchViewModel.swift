@@ -23,22 +23,22 @@ class HomeSearchViewModel: ObservableObject {
             searchState = .searching
         }
 
-        // Cancel any existing search task before starting a new one
-        searchTask?.cancel()
-
-        let task = DispatchWorkItem {
-           // let foundBeacon = Bool.random() // Simulate success or failure
-            let foundBeacon = true
-
-            DispatchQueue.main.async {
-                withAnimation {
-                    self.searchState = foundBeacon ? .success : .failure
-                }
-            }
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: task)
-        searchTask = task
+//        // Cancel any existing search task before starting a new one
+//        searchTask?.cancel()
+//
+//        let task = DispatchWorkItem {
+//           // let foundBeacon = Bool.random() // Simulate success or failure
+//            let foundBeacon = true
+//
+//            DispatchQueue.main.async {
+//                withAnimation {
+//                    self.searchState = foundBeacon ? .success : .failure
+//                }
+//            }
+//        }
+//
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: task)
+//        searchTask = task
     }
 
     func stopSearching() {
