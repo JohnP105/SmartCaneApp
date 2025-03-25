@@ -28,7 +28,7 @@ class HomeSearchViewModel: ObservableObject {
 
         let task = DispatchWorkItem {
            // let foundBeacon = Bool.random() // Simulate success or failure
-            let foundBeacon = false
+            let foundBeacon = true
 
             DispatchQueue.main.async {
                 withAnimation {
