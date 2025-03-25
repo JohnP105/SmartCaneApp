@@ -16,7 +16,7 @@ struct BeaconNotFound: View {
                     .overlay(
                         Image(systemName: "xmark")
                             .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.blue)
+                            .foregroundColor(.black)
                     )
             }
             .position(x: UIScreen.main.bounds.width - 50, y: UIScreen.main.bounds.height / 20)
@@ -28,7 +28,7 @@ struct BeaconNotFound: View {
                     .frame(width: 70, height: 70)
                     .overlay(
                         Image(systemName: "exclamationmark")
-                            .font(.system(size: 24, weight: .bold))
+                            .font(.system(size: 40, weight: .bold))
                             .foregroundColor(.white)
                     )
 

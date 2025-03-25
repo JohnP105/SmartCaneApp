@@ -14,22 +14,22 @@ struct SmartCaneIcon: View {
         ZStack {
             // Overlapping Ellipses
             Ellipse()
-                .fill(Color.green.opacity(0.8))
+                .fill(Color.green.opacity(0.7))
                 .frame(width: iconWidth, height: iconHeight)
                 .rotationEffect(.degrees(135))
                 .shadow(color: Color.green.opacity(0.3), radius: 4, x: 0, y: 2)
                 
             Ellipse()
-                .fill(Color.yellow.opacity(0.9))
+                .fill(Color.yellow.opacity(0.7))
                 .frame(width: iconWidth, height: iconHeight)
                 .rotationEffect(.degrees(90))
                 .shadow(color: Color.yellow.opacity(0.3), radius: 4, x: 0, y: 2)
                 
             Ellipse()
-                .fill(Color.red.opacity(0.8))
+                .fill(Color.red.opacity(0.7))
                 .frame(width: iconWidth, height: iconHeight)
                 .rotationEffect(.degrees(45))
-                .shadow(color: Color.blue.opacity(0.3), radius: 4, x: 0, y: 2)
+                .shadow(color: Color.red.opacity(0.3), radius: 4, x: 0, y: 2)
         }
     }
 }

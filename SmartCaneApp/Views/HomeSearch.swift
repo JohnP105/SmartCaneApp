@@ -20,9 +20,8 @@ struct HomeSearch: View {
         let circleSize = UIScreen.main.bounds.width * 0.7
         
         ZStack {
-            LinearGradient(gradient: Gradient(colors: [Color.blue.opacity(0.3), Color.blue.opacity(1.0)]),
-                           startPoint: .top, endPoint: .bottom)
-            .edgesIgnoringSafeArea(.all)
+            Color.white
+                .edgesIgnoringSafeArea(.all)
 
             // Close Button ("X" to go back) - Only in Search Mode
             if viewModel.searchState == .searching {
@@ -31,57 +30,49 @@ struct HomeSearch: View {
                     animateRipple = false
                 }) {
                     Circle()
-                        .fill(Color.black.opacity(0.2))
+                        .fill(Color.gray.opacity(0.15))
                         .frame(width: 40, height: 40)
                         .overlay(
                             Image(systemName: "xmark")
                                 .font(.system(size: 18, weight: .bold))
-                                .foregroundColor(.white)
+                                .foregroundColor(.black)
                         )
                 }
                 .position(x: screenWidth - 50, y: screenHeight / 20)
             }
         
-            VStack(spacing: 30) {
+            VStack(spacing: 65) {
                 
-                // App Title & Searching Indicator (Same Space)
+                // App Title & Searching Indicator
                 ZStack {
-                    // Idle State: "SmartCane"
                     if viewModel.searchState == .idle {
                         Text("SmartCane")
                             .font(.system(size: 50, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
-                    }
-                    
-                    // Searching State: Dots + "Searching..."
-                    else if viewModel.searchState == .searching {
-                        VStack(spacing: 5) { // Ensure vertical spacing
-                            HStack(spacing: 5) {
-                                ForEach(0..<4, id: \.self) { index in
-                                    Circle()
-                                        .fill(Color.white)
-                                        .frame(width: 8, height: 8)
-                                        .scaleEffect(animateDots ? 1.4 : 1)
-                                        .opacity(animateDots ? 0.1 : 1)
-                                        .animation(Animation.easeInOut(duration: 0.65).repeatForever().delay(Double(index) * 0.2), value: animateDots)
-                                }
+                            .foregroundColor(.black)
+                    } else if viewModel.searchState == .searching {
+                        // Animated "Searching..." Text
+                        HStack(spacing: 5) {
+                            let searchingText = Array("Searching...")
+                            ForEach(0..<searchingText.count, id: \.self) { index in
+                                Text(String(searchingText[index]))
+                                    .font(.system(size: 35, weight: .semibold))
+                                    .foregroundColor(searchingText[index] == "." ? .gray : .black)
+                                    .scaleEffect(animateDots ? 1.2 : 1)
+                                    .opacity(animateDots ? 0.3 : 1)
+                                    .animation(Animation.easeInOut(duration: 0.65).repeatForever().delay(Double(index) * 0.1), value: animateDots)
                             }
-                            Text("Searching...")
-                                .font(.system(size: 30, weight: .semibold)) // Adjust size if needed
-                                .foregroundColor(.white)
                         }
-                        .task { // Ensures animations start properly even on first load
-                            try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+                        .task {
+                            try? await Task.sleep(nanoseconds: 100_000_000)
                             animateDots = true
                         }
+                           
                     }
                 }
-                .frame(height: 80) // Ensures both states take up the same space
+                .frame(height: 80)
 
-                
+
                 ZStack {
-                    // SmartCane Button
                     Button(action: {
                         if viewModel.searchState == .idle {
                             viewModel.startSearching()
@@ -90,13 +81,10 @@ struct HomeSearch: View {
                         }
                     }) {
                         ZStack {
-                            // Button Shape
                             Circle()
-                                .stroke(Color.white.opacity(0.4), lineWidth: 3)
-                                .fill(Color.blue.opacity(0.8))
+                                .fill(Color.blue.opacity(0.65))
                                 .frame(width: animateCircle ? circleSize * 1.2 : circleSize,
                                        height: animateCircle ? circleSize * 1.2 : circleSize)
-                                .shadow(color: .black.opacity(0.2), radius: 6, x: 0, y: 3)
                                 .animation(Animation.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: animateCircle)
 
                             SmartCaneIcon()
@@ -105,17 +93,16 @@ struct HomeSearch: View {
                     .buttonStyle(PlainButtonStyle())
                     .disabled(viewModel.searchState == .searching)
                     .task {
-                        try? await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds delay
+                        try? await Task.sleep(nanoseconds: 200_000_000)
                         animateCircle = true
                     }
 
                     .background(
-                        // Ripple Effect as a Background to Avoid Layout Issues
                         ZStack {
                             if viewModel.searchState == .searching {
                                 ForEach(0..<4, id: \.self) { index in
                                     Circle()
-                                        .stroke(Color.white.opacity(0.5), lineWidth: 1)
+                                        .stroke(Color.blue.opacity(0.5), lineWidth: 1)
                                         .frame(width: circleSize * (1.5 + CGFloat(index) * 0.5),
                                                height: circleSize * (1.5 + CGFloat(index) * 0.5))
                                         .scaleEffect(animateRipple ? 1.3 : 1)
@@ -125,23 +112,19 @@ struct HomeSearch: View {
                                 .onAppear { animateRipple = true }
                             }
                         }
-                        .allowsHitTesting(false) // Prevents interference with button clicks
+                        .allowsHitTesting(false)
                     )
                 }
 
-                
                 VStack(spacing: 5) {
                     Text(viewModel.searchState == .searching ? "Please wait while we find beacons" : "Find SmartCane beacons near you!")
                         .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(.white)
-                        .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
+                        .foregroundColor(.black.opacity(0.9))
 
                     Text("Make sure your device’s Bluetooth is on")
                         .font(.system(size: 16, weight: .regular))
-                        .foregroundColor(.white.opacity(0.85))
-                        .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 1)
+                        .foregroundColor(.gray.opacity(0.85))
                 }
-
             }
         }
         .navigationBarBackButtonHidden(true)
