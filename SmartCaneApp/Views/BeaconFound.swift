@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 struct BeaconFound: View {
     @EnvironmentObject private var navViewModel: NavigationViewModel
@@ -68,19 +69,14 @@ struct BeaconFound: View {
 
             // Bottom Navigation Bar - Always Fixed at the Bottom
             HStack {
-                Spacer()
-                navBarItem(icon: "location.circle", label: ["My", "Location"]) {
-                    navViewModel.navigate(to: .beaconNotFound)
-                }
-                Spacer()
-                navBarItem(icon: "arrow.triangle.branch", label: ["Around", "Me"]) {
-                    navViewModel.navigate(to: .beaconNotFound)
-                }
-                Spacer()
-                navBarItem(icon: "mappin.and.ellipse", label: ["Nearby", "Beacons"]) {
-                    navViewModel.navigate(to: .beaconNotFound)
-                }
-                Spacer()
+                navBarItem(icon: "location.circle", label: ["My", "Location"], message: "You are currently in the library")
+                    .frame(maxWidth: .infinity)
+                
+                navBarItem(icon: "arrow.triangle.branch", label: ["Around", "Me"], message: "You are near room 101")
+                    .frame(maxWidth: .infinity)
+                
+                navBarItem(icon: "mappin.and.ellipse", label: ["Nearby", "Beacons"], message: "You are around the entrance")
+                    .frame(maxWidth: .infinity)
             }
             .frame(height: 70)
             .padding(.top, 25)
@@ -89,9 +85,11 @@ struct BeaconFound: View {
         .navigationBarBackButtonHidden(true)
     }
 
-    // Navigation Bar Item Function
-    private func navBarItem(icon: String, label: [String], action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+    // Navigation Bar Item Function with Voice Feedback
+    private func navBarItem(icon: String, label: [String], message: String) -> some View {
+        Button(action: {
+            viewModel.speak(message)
+        }) {
             VStack(spacing: 10) { // Reduced spacing for a tighter look
                 Image(systemName: icon)
                     .font(.system(size: 45))
