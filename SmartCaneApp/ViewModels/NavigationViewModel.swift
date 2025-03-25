@@ -11,9 +11,6 @@ class NavigationViewModel: ObservableObject {
 
     func navigate(to screen: AppScreen) {
         print("Navigating to: \(screen)")
-        DispatchQueue.main.async {
-            self.currentScreen = screen
-        }
+        self.currentScreen = screen
     }
-
 }
