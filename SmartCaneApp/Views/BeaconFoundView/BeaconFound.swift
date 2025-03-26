@@ -1,9 +1,34 @@
 import SwiftUI
-import AVFoundation
+
+struct AnimatedSoundRecognitionIcon: View {
+    @State private var isPulsing = false
+
+    var body: some View {
+        Image(systemName: "waveform.path.ecg") // You can use a custom icon here
+            .resizable()
+            .scaledToFit()
+            .font(.system(size: 45))
+            .frame(height: 45)
+            .foregroundColor(.blue)
+            .opacity(isPulsing ? 1.0 : 0.7)
+            .scaleEffect(isPulsing ? 1.2 : 1.0)
+            .animation(
+                .easeInOut(duration: 0.6)
+                    .repeatForever(autoreverses: true),
+                value: isPulsing
+            )
+            .onAppear {
+                isPulsing.toggle()
+            }
+
+    }
+}
 
 struct BeaconFound: View {
     @EnvironmentObject private var navViewModel: NavigationViewModel
     @StateObject private var viewModel = BeaconFoundViewModel()
+    
+    @State private var voiceState: VoiceState = .idle
 
     var body: some View {
         let screenWidth = UIScreen.main.bounds.width
@@ -69,42 +94,58 @@ struct BeaconFound: View {
 
             // Bottom Navigation Bar - Always Fixed at the Bottom
             HStack {
-                navBarItem(icon: "location.circle", label: ["My", "Location"], message: "You are currently in the library")
-                    .frame(maxWidth: .infinity)
-                
-                navBarItem(icon: "arrow.triangle.branch", label: ["Around", "Me"], message: "You are near room 101")
-                    .frame(maxWidth: .infinity)
-                
-                navBarItem(icon: "mappin.and.ellipse", label: ["Nearby", "Beacons"], message: "You are around the entrance")
-                    .frame(maxWidth: .infinity)
+                NavBarItem(
+                    icon: viewModel.voiceState == .myLocation
+                        ? AnyView(AnimatedSoundRecognitionIcon())
+                        : AnyView(Image(systemName: "location.circle")
+                            .font(.system(size: 45))
+                            .frame(height: 45))
+                    ,
+                    label: ["My", "Location"],
+                    action: {
+                        voiceState = .myLocation
+                        viewModel.speak(message: "You are currently in the library", state: .myLocation)
+                    }
+                )
+                .frame(maxWidth: .infinity)
+
+                NavBarItem(
+                    icon: viewModel.voiceState == .aroundMe
+                        ? AnyView(AnimatedSoundRecognitionIcon())
+                        : AnyView(Image(systemName: "arrow.triangle.branch")
+                            .font(.system(size: 45))
+                            .frame(height: 45))
+                    ,
+                    label: ["Around", "Me"],
+                    action: {
+                        voiceState = .aroundMe
+                        viewModel.speak(message: "You are near room 101", state: .aroundMe)
+                    }
+                )
+                .frame(maxWidth: .infinity)
+
+                NavBarItem(
+                    icon: viewModel.voiceState == .nearbyBeacons
+                        ? AnyView(AnimatedSoundRecognitionIcon())
+                        : AnyView(Image(systemName: "mappin.and.ellipse")
+                            .font(.system(size: 45))
+                            .frame(height: 45))
+                    ,
+                    label: ["Nearby", "Beacons"],
+                    action: {
+                        voiceState = .nearbyBeacons
+                        viewModel.speak(message: "You are around the entrance", state: .nearbyBeacons)
+                    }
+                )
+                .frame(maxWidth: .infinity)
             }
             .frame(height: 70)
             .padding(.top, 25)
             .background(Color.gray.opacity(0.2))
+
+
         }
         .navigationBarBackButtonHidden(true)
-    }
-
-    // Navigation Bar Item Function with Voice Feedback
-    private func navBarItem(icon: String, label: [String], message: String) -> some View {
-        Button(action: {
-            viewModel.speak(message)
-        }) {
-            VStack(spacing: 10) { // Reduced spacing for a tighter look
-                Image(systemName: icon)
-                    .font(.system(size: 45))
-                    .frame(height: 45)
-
-                VStack(alignment: .center, spacing: 2) { // Stacks text properly
-                    ForEach(label, id: \.self) { line in
-                        Text(line)
-                            .font(.system(size: 15, weight: .medium))
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity) // Ensures even spacing across items
-            .foregroundColor(.black)
-        }
     }
 }
 
