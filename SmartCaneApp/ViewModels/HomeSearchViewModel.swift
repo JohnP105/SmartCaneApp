@@ -10,8 +10,10 @@ enum SearchState {
 
 class HomeSearchViewModel: ObservableObject {
     @Published var searchState: SearchState = .idle
-    private var searchTask: DispatchWorkItem?
+    @AppStorage("shouldFindBeacon") private var shouldFindBeacon: Bool = false // Persistent across app restarts
     
+    private var searchTask: DispatchWorkItem?
+
     init(startInSearchMode: Bool = false) {
         if startInSearchMode {
             startSearching()
@@ -23,28 +25,30 @@ class HomeSearchViewModel: ObservableObject {
             searchState = .searching
         }
 
-        // Cancel any existing search task before starting a new one
         searchTask?.cancel()
+        searchTask = nil
 
-        let task = DispatchWorkItem {
-           // let foundBeacon = Bool.random() // Simulate success or failure
-            let foundBeacon = true
+        let task = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
 
             DispatchQueue.main.async {
                 withAnimation {
-                    self.searchState = foundBeacon ? .success : .failure
+                    self.searchState = self.shouldFindBeacon ? .success : .failure
+                    self.shouldFindBeacon.toggle() // Alternate result
                 }
             }
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: task)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5, execute: task)
         searchTask = task
     }
 
     func stopSearching() {
+        searchTask?.cancel()
+        searchTask = nil
+
         withAnimation {
             searchState = .idle
         }
-        searchTask?.cancel() // Cancel the pending navigation task
     }
 }

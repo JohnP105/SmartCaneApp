@@ -86,8 +86,6 @@ struct BeaconFound: View {
                         }
                         .allowsHitTesting(false)
                     }
-
-                    Spacer() // Pushes everything up, keeping the nav bar at the bottom
                 }
                 .padding(.bottom, 80) // Ensures proper spacing above nav bar
             }
