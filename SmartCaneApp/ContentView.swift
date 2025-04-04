@@ -10,9 +10,10 @@ struct ContentView: View {
                 case .homeSearch(let startInSearchMode):
                     HomeSearch(startInSearchMode: startInSearchMode)
                         .transition(.asymmetric(
-                            insertion: .move(edge: .top).combined(with: .opacity), // Home fades in from top
-                            removal: .move(edge: .bottom).combined(with: .opacity) // Beacon slides down while disappearing
+                            insertion: .opacity, // Home fades in without movement
+                            removal: .opacity // Home fades out without movement
                         ))
+
                     
                 case .beaconNotFound:
                     BeaconNotFound()

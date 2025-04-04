@@ -39,7 +39,7 @@ class HomeSearchViewModel: ObservableObject {
             }
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5, execute: task)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: task)
         searchTask = task
     }
 

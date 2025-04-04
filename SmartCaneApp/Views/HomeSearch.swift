@@ -69,7 +69,7 @@ struct HomeSearch: View {
                            
                     }
                 }
-                .frame(height: 80)
+                .frame(height: 40)
 
 
                 ZStack {
@@ -115,6 +115,8 @@ struct HomeSearch: View {
                         .allowsHitTesting(false)
                     )
                 }
+                .frame(height: 350) 
+                
 
                 VStack(spacing: 5) {
                     Text(viewModel.searchState == .searching ? "Please wait while we find beacons" : "Find SmartCane beacons near you!")
@@ -125,6 +127,7 @@ struct HomeSearch: View {
                         .font(.system(size: 16, weight: .regular))
                         .foregroundColor(.gray.opacity(0.85))
                 }
+                .frame(height: 40)
             }
         }
         .navigationBarBackButtonHidden(true)
