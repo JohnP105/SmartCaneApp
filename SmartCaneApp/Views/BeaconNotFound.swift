@@ -4,27 +4,40 @@ struct BeaconNotFound: View {
     @EnvironmentObject private var navViewModel: NavigationViewModel
     @StateObject private var viewModel = BeaconNotFoundViewModel()
 
+    private let backNavigationFrameHeight = 155
     var body: some View {
-        ZStack {
-            // Close Button ("X" to go back) - Redirect to Home
-            Button(action: {
-                navViewModel.navigate(to: .homeSearch(startInSearchMode: false))
-            }) {
-                Circle()
-                    .fill(Color.gray.opacity(0.15))
-                    .frame(width: 40, height: 40)
-                    .overlay(
-                        Image(systemName: "xmark")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.black)
-                    )
-            }
-            .position(x: UIScreen.main.bounds.width - 50, y: UIScreen.main.bounds.height / 20)
+        VStack {
+            // First Component: Back Arrow Button (Top Left)
+            HStack {
+                Button(action: {
+                    navViewModel.navigate(to: .homeSearch(startInSearchMode: false))
+                }) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 25, weight: .bold))
+                            .foregroundColor(.white)
+                            .background(Color.blue)
+                        
+                        Text("Back")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                }
 
-            // Centered VStack
+                Spacer() // Takes up remaining space to keep the button on the left
+            }
+            .padding(.horizontal, 15)
+            .padding(.vertical, 15)
+            .background(Color.blue)
+            .frame(height: CGFloat(backNavigationFrameHeight))
+            .edgesIgnoringSafeArea(.top)
+            
+            // Second Component: Main Content (Vertically Centered)
             VStack(spacing: 15) {
+                Spacer() // Pushes the content down
+
                 Circle()
-                    .fill(Color.blue.opacity(0.9))
+                    .fill(Color.blue)
                     .frame(width: 70, height: 70)
                     .overlay(
                         Image(systemName: "exclamationmark")
@@ -38,7 +51,7 @@ struct BeaconNotFound: View {
 
                 Text("We couldn’t locate any SmartCane Beacon near you")
                     .font(.system(size: 20))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.gray.opacity(0.8))
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 300)
 
@@ -54,8 +67,11 @@ struct BeaconNotFound: View {
                         .background(Color.blue)
                         .cornerRadius(10)
                 }
-                .padding(.top, 10)
+
+                Spacer() // Pushes content up to center it vertically
             }
+            .padding(.bottom, CGFloat(backNavigationFrameHeight))
+            .frame(maxHeight: .infinity) // Makes sure the content takes up the available space
         }
     }
 }
@@ -63,5 +79,5 @@ struct BeaconNotFound: View {
 // Preview
 #Preview {
     BeaconNotFound()
-        .environmentObject(NavigationViewModel()) // Provide a mock instance for preview
+        .environmentObject(NavigationViewModel())
 }
