@@ -4,37 +4,16 @@ struct BeaconNotFound: View {
     @EnvironmentObject private var navViewModel: NavigationViewModel
     @StateObject private var viewModel = BeaconNotFoundViewModel()
 
-    private let backNavigationFrameHeight = 155
     var body: some View {
         VStack {
-            // First Component: Back Arrow Button (Top Left)
-            HStack {
-                Button(action: {
-                    navViewModel.navigate(to: .homeSearch(startInSearchMode: false))
-                }) {
-                    HStack(spacing: 5) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 25, weight: .bold))
-                            .foregroundColor(.white)
-                            .background(Color.blue)
-                        
-                        Text("Back")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.white)
-                    }
-                }
-
-                Spacer() // Takes up remaining space to keep the button on the left
+            // Reusable Back Button
+            BackNavigationBar( ) {
+                navViewModel.navigate(to: .homeSearch(startInSearchMode: false))
             }
-            .padding(.horizontal, 15)
-            .padding(.vertical, 15)
-            .background(Color.blue)
-            .frame(height: CGFloat(backNavigationFrameHeight))
-            .edgesIgnoringSafeArea(.top)
-            
-            // Second Component: Main Content (Vertically Centered)
+
+            // Second Component: Main Content
             VStack(spacing: 15) {
-                Spacer() // Pushes the content down
+                Spacer()
 
                 Circle()
                     .fill(Color.blue)
@@ -68,10 +47,10 @@ struct BeaconNotFound: View {
                         .cornerRadius(10)
                 }
 
-                Spacer() // Pushes content up to center it vertically
+                Spacer()
             }
-            .padding(.bottom, CGFloat(backNavigationFrameHeight))
-            .frame(maxHeight: .infinity) // Makes sure the content takes up the available space
+            .frame(maxHeight: .infinity)
+            .padding(.bottom, 140)
         }
     }
 }
