@@ -6,10 +6,11 @@ struct BeaconNotFound: View {
 
     var body: some View {
         VStack {
-            // Reusable Back Button
-            BackNavigationBar( ) {
+            // Back Button
+            BackNavigationBar(title: "No Beacons Nearby") {
                 navViewModel.navigate(to: .homeSearch(startInSearchMode: false))
             }
+
 
             // Second Component: Main Content
             VStack(spacing: 15) {

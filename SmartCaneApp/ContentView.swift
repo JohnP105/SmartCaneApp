@@ -28,7 +28,7 @@ struct ContentView: View {
                         .transition(.opacity) // Fade in while loading
                 }
             }
-            .animation(.easeInOut(duration: 0.5), value: navViewModel.currentScreen) // Animate transitions
+            .animation(.easeInOut(duration: 0.3), value: navViewModel.currentScreen) // Animate transitions
         }
     }
 }
