@@ -6,6 +6,9 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             ZStack {
+                Color.white
+                    .edgesIgnoringSafeArea(.all)
+                
                 switch navViewModel.currentScreen {
                 case .homeSearch(let startInSearchMode):
                     HomeSearch(startInSearchMode: startInSearchMode)

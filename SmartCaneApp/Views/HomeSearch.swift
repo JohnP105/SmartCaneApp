@@ -20,9 +20,6 @@ struct HomeSearch: View {
         let circleSize = UIScreen.main.bounds.width * 0.7
         
         ZStack {
-            Color.white
-                .edgesIgnoringSafeArea(.all)
-
             // Close Button ("X" to go back) - Only in Search Mode
             if viewModel.searchState == .searching {
                 Button(action: {
