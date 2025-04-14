@@ -1,6 +1,7 @@
 import AVFoundation
 import SwiftUI
 import CoreBluetooth
+import Combine
 
 // Enum to track the current voice state
 enum VoiceState {
@@ -16,41 +17,58 @@ class BeaconFoundViewModel: NSObject, ObservableObject, AVSpeechSynthesizerDeleg
     @Published var distance: Double = 0.0
     private let synthesizer = AVSpeechSynthesizer()
     private var audioPlayer: AVAudioPlayer?
-    private var rssiTimer: Timer?
     private let bluetoothManager = BluetoothManager.shared
+    private var cancellables = Set<AnyCancellable>()
 
     override init() {
         super.init()
         synthesizer.delegate = self
+        
+        // Subscribe to RSSI updates
+        bluetoothManager.$currentRSSI
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] rssi in
+                guard let self = self else { return }
+                self.distance = self.calculateDistance(from: rssi)
+            }
+            .store(in: &cancellables)
     }
 
     func startMonitoringDistance() {
-        rssiTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            guard let self = self, let peripheral = self.connectedBeacon else { return }
+        // No need for timer anymore as BluetoothManager handles RSSI updates
+        if let peripheral = bluetoothManager.connectedBeacon {
+            peripheral.delegate = bluetoothManager
             peripheral.readRSSI()
         }
     }
 
     func stopMonitoringDistance() {
-        rssiTimer?.invalidate()
-        rssiTimer = nil
+        // No need to stop timer as BluetoothManager handles RSSI updates
     }
 
     func cleanup() {
-        stopMonitoringDistance()
         bluetoothManager.reset()
         connectedBeacon = nil
         distance = 0.0
+        cancellables.removeAll()
     }
 
     func calculateDistance(from rssi: Int) -> Double {
         // Constants for the formula
-        let txPower = -59 // RSSI at 1 meter
+        let txPower = -66 // RSSI at 1 meter
         let n = 2.0 // Path loss exponent (2 for free space)
         
         // Calculate distance using the log-distance path loss model
         let distance = pow(10, (Double(txPower) - Double(rssi)) / (10 * n))
-        return max(0.1, min(distance, 10.0)) // Clamp between 0.1m and 10m
+        let clampedDistance = max(0.1, min(distance, 10.0)) // Clamp between 0.1m and 10m
+        
+        print("\n=== DISTANCE CALCULATION ===")
+        print("RSSI: \(rssi) dBm")
+        print("Raw Distance: \(String(format: "%.2f", distance)) meters")
+        print("Clamped Distance: \(String(format: "%.2f", clampedDistance)) meters")
+        print("========================\n")
+        
+        return clampedDistance
     }
 
     // Speak and update voice state with click sound and delay
@@ -112,9 +130,15 @@ extension BeaconFoundViewModel: CBPeripheralDelegate {
             return
         }
         
+        print("\n=== RSSI UPDATE ===")
+        print("Peripheral: \(peripheral.name ?? "Unknown")")
+        print("RSSI: \(RSSI) dBm")
+        
         let newDistance = calculateDistance(from: RSSI.intValue)
         DispatchQueue.main.async {
             self.distance = newDistance
+            print("Updated UI Distance: \(String(format: "%.2f", newDistance)) meters")
+            print("========================\n")
         }
     }
 }

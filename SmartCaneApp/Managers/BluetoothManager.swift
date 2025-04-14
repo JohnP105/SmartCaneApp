@@ -7,6 +7,7 @@ public class BluetoothManager: NSObject, ObservableObject {
     @Published public var isScanning = false
     @Published public var connectedBeacon: CBPeripheral?
     @Published public var discoveredBeacons: [CBPeripheral] = []
+    @Published public var currentRSSI: Int = 0
     
     private var centralManager: CBCentralManager!
     private let centralManagerQueue = DispatchQueue(label: "com.smartcane.bluetooth", qos: .userInitiated)
@@ -31,11 +32,19 @@ public class BluetoothManager: NSObject, ObservableObject {
     }
     
     public func connect(to peripheral: CBPeripheral) {
+        print("\n=== CONNECTING TO BEACON ===")
+        print("Name: \(peripheral.name ?? "Unknown")")
+        print("Identifier: \(peripheral.identifier)")
+        
+        // Set the delegate before connecting
+        peripheral.delegate = self
         centralManager.connect(peripheral, options: nil)
     }
     
     public func disconnect() {
         if let peripheral = connectedBeacon {
+            print("\n=== DISCONNECTING FROM BEACON ===")
+            print("Name: \(peripheral.name ?? "Unknown")")
             centralManager.cancelPeripheralConnection(peripheral)
         }
     }
@@ -78,22 +87,58 @@ extension BluetoothManager: CBCentralManagerDelegate {
             
             if !discoveredBeacons.contains(peripheral) {
                 discoveredBeacons.append(peripheral)
+                // Automatically connect to the first beacon found
+                if connectedBeacon == nil {
+                    connect(to: peripheral)
+                }
             }
         }
     }
     
     public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
-        print("Connected to \(peripheral.name ?? "unknown")")
+        print("\n=== BEACON CONNECTED ===")
+        print("Name: \(peripheral.name ?? "Unknown")")
         connectedBeacon = peripheral
+        // Start reading RSSI immediately after connection
+        peripheral.readRSSI()
     }
     
     public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-        print("Disconnected from \(peripheral.name ?? "unknown")")
+        print("\n=== BEACON DISCONNECTED ===")
+        print("Name: \(peripheral.name ?? "Unknown")")
+        if let error = error {
+            print("Error: \(error.localizedDescription)")
+        }
         connectedBeacon = nil
     }
     
     public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
-        print("Failed to connect to \(peripheral.name ?? "unknown"): \(error?.localizedDescription ?? "unknown error")")
+        print("\n=== BEACON CONNECTION FAILED ===")
+        print("Name: \(peripheral.name ?? "Unknown")")
+        print("Error: \(error?.localizedDescription ?? "unknown error")")
         connectedBeacon = nil
+    }
+}
+
+extension BluetoothManager: CBPeripheralDelegate {
+    public func peripheral(_ peripheral: CBPeripheral, didReadRSSI RSSI: NSNumber, error: Error?) {
+        if let error = error {
+            print("Error reading RSSI: \(error.localizedDescription)")
+            return
+        }
+        
+        print("\n=== BEACON RSSI UPDATE ===")
+        print("Name: \(peripheral.name ?? "Unknown")")
+        print("RSSI: \(RSSI) dBm")
+        
+        // Update the published RSSI value
+        DispatchQueue.main.async { [weak self] in
+            self?.currentRSSI = RSSI.intValue
+        }
+        
+        // Schedule next RSSI read
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            self?.connectedBeacon?.readRSSI()
+        }
     }
 } 
