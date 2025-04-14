@@ -15,6 +15,7 @@ struct BeaconFound: View {
             VStack(spacing: 0) {
                 // Back Button
                 BackNavigationBar(title: "Beacon Found") {
+                    viewModel.cleanup()
                     navViewModel.navigate(to: .homeSearch(startInSearchMode: false))
                 }
 
@@ -23,13 +24,23 @@ struct BeaconFound: View {
 
                     // Location Info
                     VStack(spacing: 5) {
-                        Text("You are currently in the")
+                        Text("You are currently")
                             .font(.system(size: 20, weight: .semibold))
                             .foregroundColor(.black.opacity(0.9))
 
-                        Text("Library")
+                        Text(String(format: "%.1f meters away", viewModel.distance))
                             .font(.system(size: 50, weight: .bold, design: .rounded))
                             .foregroundColor(.black)
+                            
+                        Text("from beacon")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundColor(.black.opacity(0.9))
+                    }
+                    .onAppear {
+                        viewModel.startMonitoringDistance()
+                    }
+                    .onDisappear {
+                        viewModel.stopMonitoringDistance()
                     }
 
                     // SmartCane Icon Inside a Circle

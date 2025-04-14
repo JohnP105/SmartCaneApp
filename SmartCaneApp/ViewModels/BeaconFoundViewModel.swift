@@ -13,12 +13,44 @@ enum VoiceState {
 class BeaconFoundViewModel: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     @Published var voiceState: VoiceState = .idle
     @Published var connectedBeacon: CBPeripheral?
+    @Published var distance: Double = 0.0
     private let synthesizer = AVSpeechSynthesizer()
     private var audioPlayer: AVAudioPlayer?
+    private var rssiTimer: Timer?
+    private let bluetoothManager = BluetoothManager.shared
 
     override init() {
         super.init()
         synthesizer.delegate = self
+    }
+
+    func startMonitoringDistance() {
+        rssiTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            guard let self = self, let peripheral = self.connectedBeacon else { return }
+            peripheral.readRSSI()
+        }
+    }
+
+    func stopMonitoringDistance() {
+        rssiTimer?.invalidate()
+        rssiTimer = nil
+    }
+
+    func cleanup() {
+        stopMonitoringDistance()
+        bluetoothManager.reset()
+        connectedBeacon = nil
+        distance = 0.0
+    }
+
+    func calculateDistance(from rssi: Int) -> Double {
+        // Constants for the formula
+        let txPower = -59 // RSSI at 1 meter
+        let n = 2.0 // Path loss exponent (2 for free space)
+        
+        // Calculate distance using the log-distance path loss model
+        let distance = pow(10, (Double(txPower) - Double(rssi)) / (10 * n))
+        return max(0.1, min(distance, 10.0)) // Clamp between 0.1m and 10m
     }
 
     // Speak and update voice state with click sound and delay
@@ -66,5 +98,23 @@ class BeaconFoundViewModel: NSObject, ObservableObject, AVSpeechSynthesizerDeleg
         print("Failed to connect to \(peripheral.name ?? "unknown"): \(error?.localizedDescription ?? "unknown error")")
         // Reset the connection state
         connectedBeacon = nil
+    }
+
+    deinit {
+        cleanup()
+    }
+}
+
+extension BeaconFoundViewModel: CBPeripheralDelegate {
+    func peripheral(_ peripheral: CBPeripheral, didReadRSSI RSSI: NSNumber, error: Error?) {
+        if let error = error {
+            print("Error reading RSSI: \(error.localizedDescription)")
+            return
+        }
+        
+        let newDistance = calculateDistance(from: RSSI.intValue)
+        DispatchQueue.main.async {
+            self.distance = newDistance
+        }
     }
 }
