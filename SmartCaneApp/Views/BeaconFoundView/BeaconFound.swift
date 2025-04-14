@@ -108,6 +108,11 @@ struct BeaconFound: View {
             .background(Color.gray.opacity(0.2))
         }
         .navigationBarBackButtonHidden(true)
+        .onAppear {
+            viewModel.onDisconnect = {
+                navViewModel.navigate(to: .beaconDisconnected)
+            }
+        }
     }
 }
 

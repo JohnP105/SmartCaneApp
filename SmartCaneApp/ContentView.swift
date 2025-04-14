@@ -26,6 +26,10 @@ struct ContentView: View {
                     BeaconFound()
                         .transition(.move(edge: .trailing)) // Slide in from right
                 
+                case .beaconDisconnected:
+                    BeaconDisconnected()
+                        .transition(.move(edge: .trailing)) // Slide in from right
+                
                 case nil:
                     Text("Loading...")
                         .transition(.opacity) // Fade in while loading

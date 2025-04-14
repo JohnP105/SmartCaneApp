@@ -19,6 +19,7 @@ class BeaconFoundViewModel: NSObject, ObservableObject, AVSpeechSynthesizerDeleg
     private var audioPlayer: AVAudioPlayer?
     private let bluetoothManager = BluetoothManager.shared
     private var cancellables = Set<AnyCancellable>()
+    var onDisconnect: (() -> Void)?  // Add callback for disconnection
 
     override init() {
         super.init()
@@ -27,9 +28,23 @@ class BeaconFoundViewModel: NSObject, ObservableObject, AVSpeechSynthesizerDeleg
         // Subscribe to RSSI updates
         bluetoothManager.$currentRSSI
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] rssi in
+            .sink { [weak self] (rssi: Int) in
                 guard let self = self else { return }
                 self.distance = self.calculateDistance(from: rssi)
+            }
+            .store(in: &cancellables)
+            
+        // Subscribe to connection state changes
+        bluetoothManager.$connectedBeacon
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] peripheral in
+                guard let self = self else { return }
+                if peripheral == nil && self.connectedBeacon != nil {
+                    // Beacon was disconnected
+                    self.cleanup()
+                    self.onDisconnect?()
+                }
+                self.connectedBeacon = peripheral
             }
             .store(in: &cancellables)
     }

@@ -4,6 +4,7 @@ enum AppScreen: Hashable {
     case homeSearch(startInSearchMode: Bool = false)
     case beaconFound
     case beaconNotFound
+    case beaconDisconnected
 }
 
 class NavigationViewModel: ObservableObject {
