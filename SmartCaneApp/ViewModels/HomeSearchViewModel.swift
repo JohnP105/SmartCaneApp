@@ -13,7 +13,7 @@ enum SearchState {
 @MainActor
 class HomeSearchViewModel: ObservableObject {
     @Published var searchState: SearchState = .idle
-    private let bluetoothManager = BluetoothManager()
+    private let bluetoothManager = BluetoothManager.shared
     private var searchTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
     

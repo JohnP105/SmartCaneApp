@@ -3,6 +3,7 @@ import SwiftUI
 
 /// A manager class that handles Bluetooth operations for beacon discovery
 public class BluetoothManager: NSObject, ObservableObject {
+    public static let shared = BluetoothManager()
     @Published public var isScanning = false
     @Published public var connectedBeacon: CBPeripheral?
     @Published public var discoveredBeacons: [CBPeripheral] = []
