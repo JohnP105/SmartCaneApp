@@ -74,5 +74,6 @@ class HomeSearchViewModel: ObservableObject {
     deinit {
         searchTimer?.invalidate()
         bluetoothManager.stopScanning()
+        cancellables.removeAll()
     }
 }

@@ -6,6 +6,10 @@
     <string>This app needs Bluetooth to connect to your Smart Cane beacon</string>
     <key>NSBluetoothPeripheralUsageDescription</key>
     <string>This app needs Bluetooth to connect to your Smart Cane beacon</string>
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>bluetooth-central</string>
+    </array>
 </dict>
 </plist>
 

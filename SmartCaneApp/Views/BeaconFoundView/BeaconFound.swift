@@ -35,7 +35,7 @@ struct BeaconFound: View {
                     // SmartCane Icon Inside a Circle
                     ZStack {
                         Button(action: {}) {
-                            ZStack {
+                             ZStack {
                                 Circle()
                                     .fill(Color.blue.opacity(0.65))
                                     .frame(width: circleSize, height: circleSize)

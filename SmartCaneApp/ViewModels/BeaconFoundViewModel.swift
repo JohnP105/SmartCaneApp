@@ -1,5 +1,6 @@
 import AVFoundation
 import SwiftUI
+import CoreBluetooth
 
 // Enum to track the current voice state
 enum VoiceState {
@@ -11,6 +12,7 @@ enum VoiceState {
 
 class BeaconFoundViewModel: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     @Published var voiceState: VoiceState = .idle
+    @Published var connectedBeacon: CBPeripheral?
     private let synthesizer = AVSpeechSynthesizer()
     private var audioPlayer: AVAudioPlayer?
 
@@ -58,5 +60,11 @@ class BeaconFoundViewModel: NSObject, ObservableObject, AVSpeechSynthesizerDeleg
     // Delegate method that is called when speech is canceled
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
         // Reset cancel flag here if needed
+    }
+
+    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+        print("Failed to connect to \(peripheral.name ?? "unknown"): \(error?.localizedDescription ?? "unknown error")")
+        // Reset the connection state
+        connectedBeacon = nil
     }
 }
