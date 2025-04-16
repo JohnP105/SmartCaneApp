@@ -26,10 +26,23 @@ struct BeaconFound: View {
                     // Location Info
                     VStack(spacing: 5) {
                         if viewModel.isAttemptingReconnection {
-                            Text("Reconnecting")
-                                .font(.system(size: 36, weight: .bold, design: .rounded))
-                                .foregroundColor(.orange)
-                                .transition(.opacity)
+                            HStack(spacing: 5) {
+                                let searchingText = Array("Reconnecting...")
+                                ForEach(0..<searchingText.count, id: \.self) { index in
+                                    Text(String(searchingText[index]))
+                                        .font(.system(size: 45, weight: .semibold))
+                                        .foregroundColor(searchingText[index] == "." ? .gray : .orange)
+                                        .scaleEffect(animateDots ? 1.2 : 1)
+                                        .opacity(animateDots ? 0.3 : 1)
+                                        .animation(Animation.easeInOut(duration: 0.65).repeatForever().delay(Double(index) * 0.1), value: animateDots)
+                                }
+                            }
+                            .task {
+                                try? await Task.sleep(nanoseconds: 100_000_000)
+                                animateDots = true
+                            }
+
+                            
                         } else {
                             Text("You are")
                                 .font(.system(size: 20, weight: .semibold))
@@ -45,6 +58,7 @@ struct BeaconFound: View {
                                 .foregroundColor(.black.opacity(0.9))
                         }
                     }
+                    .frame(height: 150) // Fixed height to prevent layout shifts during reconnecting mode
                     .animation(.easeInOut, value: viewModel.isAttemptingReconnection)
                     .onAppear {
                         viewModel.startMonitoringDistance()
