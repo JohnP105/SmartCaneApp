@@ -6,6 +6,8 @@ struct BeaconFound: View {
 
     @State private var voiceState: VoiceState = .idle
     @State private var animateDots = false
+    @State private var animateCircle = false
+    @State private var animateRipple = false
     private var navItemsSize: CGFloat = 40 // Now defined here once
 
     var body: some View {
@@ -27,21 +29,22 @@ struct BeaconFound: View {
                     VStack(spacing: 5) {
                         if viewModel.isAttemptingReconnection {
                             HStack(spacing: 5) {
-                                let searchingText = Array("Reconnecting...")
-                                ForEach(0..<searchingText.count, id: \.self) { index in
-                                    Text(String(searchingText[index]))
-                                        .font(.system(size: 45, weight: .semibold))
-                                        .foregroundColor(searchingText[index] == "." ? .gray : .orange)
+                                let reconnectingText = Array("Reconnecting...")
+                                ForEach(0..<reconnectingText.count, id: \.self) { index in
+                                    Text(String(reconnectingText[index]))
+                                        .font(.system(size: 35, weight: .bold))
+                                        .foregroundColor(.orange)
                                         .scaleEffect(animateDots ? 1.2 : 1)
                                         .opacity(animateDots ? 0.3 : 1)
                                         .animation(Animation.easeInOut(duration: 0.65).repeatForever().delay(Double(index) * 0.1), value: animateDots)
                                 }
                             }
-                            .task {
-                                try? await Task.sleep(nanoseconds: 100_000_000)
+                            .onAppear {
                                 animateDots = true
                             }
-
+                            .onDisappear {
+                                animateDots = false
+                            }
                             
                         } else {
                             Text("You are")
@@ -49,16 +52,12 @@ struct BeaconFound: View {
                                 .foregroundColor(.black.opacity(0.9))
                             
                             Text(String(format: "%.1f meters away", viewModel.distance))
-                                .font(.system(size: 50, weight: .bold, design: .rounded))
+                                .font(.system(size: 40, weight: .bold, design: .rounded))
                                 .foregroundColor(.black)
                                 .transition(.opacity)
-                                
-                            Text("from beacon")
-                                .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(.black.opacity(0.9))
                         }
                     }
-                    .frame(height: 150) // Fixed height to prevent layout shifts during reconnecting mode
+                    .frame(height: 50) // Fixed height to prevent layout shifts during reconnecting mode
                     .animation(.easeInOut, value: viewModel.isAttemptingReconnection)
                     .onAppear {
                         viewModel.startMonitoringDistance()
@@ -69,27 +68,47 @@ struct BeaconFound: View {
 
                     // SmartCane Icon Inside a Circle
                     ZStack {
-                        Button(action: {}) {
-                             ZStack {
-                                Circle()
-                                    .fill(viewModel.isAttemptingReconnection ? Color.orange.opacity(0.65) : Color.blue.opacity(0.65))
-                                    .frame(width: circleSize, height: circleSize)
-                                SmartCaneIcon()
+                        // Only create animations when reconnecting
+                        if viewModel.isAttemptingReconnection {
+                            // Orange animating circle with ripple effect during reconnection
+                            Circle()
+                                .fill(Color.orange.opacity(0.65))
+                                .frame(width: animateCircle ? circleSize * 1.2 : circleSize,
+                                       height: animateCircle ? circleSize * 1.2 : circleSize)
+                                .animation(Animation.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: animateCircle)
                                 
-                                if viewModel.isAttemptingReconnection {
-                                    ProgressView()
-                                        .scaleEffect(2.5)
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                }
+                            // Ripple effect
+                            ForEach(0..<4, id: \.self) { index in
+                                Circle()
+                                    .stroke(Color.orange.opacity(0.5), lineWidth: 2)
+                                    .frame(width: circleSize * (1.5 + CGFloat(index) * 0.5),
+                                           height: circleSize * (1.5 + CGFloat(index) * 0.5))
+                                    .scaleEffect(animateRipple ? 1.3 : 1)
+                                    .opacity(animateRipple ? 0 : 1)
+                                    .animation(Animation.easeOut(duration: 1.5).repeatForever().delay(Double(index) * 0.3), value: animateRipple)
                             }
+                            
+                            // SmartCane icon on top
+                            SmartCaneIcon()
+                                .onAppear {
+                                    animateCircle = true
+                                    animateRipple = true
+                                }
+                                .onDisappear {
+                                    animateCircle = false
+                                    animateRipple = false
+                                }
+                        } else {
+                            // Static blue circle when not reconnecting
+                            Circle()
+                                .fill(Color.blue.opacity(0.65))
+                                .frame(width: circleSize, height: circleSize)
+                                
+                            // SmartCane icon on top
+                            SmartCaneIcon()
                         }
-                        .buttonStyle(PlainButtonStyle())
-                        .task {
-                            try? await Task.sleep(nanoseconds: 200_000_000)
-                        }
-                        .allowsHitTesting(false)
                     }
-                    .animation(.easeInOut(duration: 0.3), value: viewModel.isAttemptingReconnection)
+                    .frame(height: 350)
                 }
             }
 

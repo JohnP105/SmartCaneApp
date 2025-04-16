@@ -66,7 +66,7 @@ struct HomeSearch: View {
                            
                     }
                 }
-                .frame(height: 40)
+                .frame(height: 50)
 
 
                 ZStack {
