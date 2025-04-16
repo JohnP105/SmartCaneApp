@@ -5,6 +5,7 @@ struct BeaconFound: View {
     @StateObject private var viewModel = BeaconFoundViewModel()
 
     @State private var voiceState: VoiceState = .idle
+    @State private var animateDots = false
     private var navItemsSize: CGFloat = 40 // Now defined here once
 
     var body: some View {
@@ -24,18 +25,27 @@ struct BeaconFound: View {
 
                     // Location Info
                     VStack(spacing: 5) {
-                        Text("You are currently")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(.black.opacity(0.9))
-
-                        Text(String(format: "%.1f meters away", viewModel.distance))
-                            .font(.system(size: 50, weight: .bold, design: .rounded))
-                            .foregroundColor(.black)
+                        if viewModel.isAttemptingReconnection {
+                            Text("Reconnecting")
+                                .font(.system(size: 36, weight: .bold, design: .rounded))
+                                .foregroundColor(.orange)
+                                .transition(.opacity)
+                        } else {
+                            Text("You are")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(.black.opacity(0.9))
                             
-                        Text("from beacon")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(.black.opacity(0.9))
+                            Text(String(format: "%.1f meters away", viewModel.distance))
+                                .font(.system(size: 50, weight: .bold, design: .rounded))
+                                .foregroundColor(.black)
+                                .transition(.opacity)
+                                
+                            Text("from beacon")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(.black.opacity(0.9))
+                        }
                     }
+                    .animation(.easeInOut, value: viewModel.isAttemptingReconnection)
                     .onAppear {
                         viewModel.startMonitoringDistance()
                     }
@@ -48,9 +58,15 @@ struct BeaconFound: View {
                         Button(action: {}) {
                              ZStack {
                                 Circle()
-                                    .fill(Color.blue.opacity(0.65))
+                                    .fill(viewModel.isAttemptingReconnection ? Color.orange.opacity(0.65) : Color.blue.opacity(0.65))
                                     .frame(width: circleSize, height: circleSize)
                                 SmartCaneIcon()
+                                
+                                if viewModel.isAttemptingReconnection {
+                                    ProgressView()
+                                        .scaleEffect(2.5)
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                }
                             }
                         }
                         .buttonStyle(PlainButtonStyle())
@@ -59,13 +75,14 @@ struct BeaconFound: View {
                         }
                         .allowsHitTesting(false)
                     }
+                    .animation(.easeInOut(duration: 0.3), value: viewModel.isAttemptingReconnection)
                 }
             }
 
             // Spacer to push the bottom navigation bar to the bottom
             Spacer()
 
-            // Bottom Navigation Bar
+            // Bottom Navigation Bar - disabled during reconnection
             HStack(spacing: 70) {
                 NavBarItem(
                     icon: viewModel.voiceState == .myLocation
@@ -78,6 +95,8 @@ struct BeaconFound: View {
                         viewModel.speak(message: "You are currently in the library", state: .myLocation)
                     }
                 )
+                .disabled(viewModel.isAttemptingReconnection)
+                .opacity(viewModel.isAttemptingReconnection ? 0.5 : 1.0)
 
                 NavBarItem(
                     icon: viewModel.voiceState == .aroundMe
@@ -90,6 +109,8 @@ struct BeaconFound: View {
                         viewModel.speak(message: "You are near room 101", state: .aroundMe)
                     }
                 )
+                .disabled(viewModel.isAttemptingReconnection)
+                .opacity(viewModel.isAttemptingReconnection ? 0.5 : 1.0)
 
                 NavBarItem(
                     icon: viewModel.voiceState == .nearbyBeacons
@@ -102,6 +123,8 @@ struct BeaconFound: View {
                         viewModel.speak(message: "You are around the entrance", state: .nearbyBeacons)
                     }
                 )
+                .disabled(viewModel.isAttemptingReconnection)
+                .opacity(viewModel.isAttemptingReconnection ? 0.5 : 1.0)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 100)

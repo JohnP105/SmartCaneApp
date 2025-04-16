@@ -15,10 +15,17 @@ class BeaconFoundViewModel: NSObject, ObservableObject, AVSpeechSynthesizerDeleg
     @Published var voiceState: VoiceState = .idle
     @Published var connectedBeacon: CBPeripheral?
     @Published var distance: Double = 0.0
+    @Published var isAttemptingReconnection: Bool = false
+    
     private let synthesizer = AVSpeechSynthesizer()
     private var audioPlayer: AVAudioPlayer?
     private let bluetoothManager = BluetoothManager.shared
     private var cancellables = Set<AnyCancellable>()
+    private var reconnectionAttempts = 0
+    private let maxReconnectionAttempts = 3
+    private var reconnectionTimer: Timer?
+    private var lastKnownPeripheral: CBPeripheral?
+    
     var onDisconnect: (() -> Void)?  // Add callback for disconnection
 
     override init() {
@@ -39,14 +46,63 @@ class BeaconFoundViewModel: NSObject, ObservableObject, AVSpeechSynthesizerDeleg
             .receive(on: DispatchQueue.main)
             .sink { [weak self] peripheral in
                 guard let self = self else { return }
-                if peripheral == nil && self.connectedBeacon != nil {
-                    // Beacon was disconnected
-                    self.cleanup()
-                    self.onDisconnect?()
+                
+                if peripheral != nil {
+                    // Reset reconnection attempts when successfully connected
+                    self.reconnectionAttempts = 0
+                    self.isAttemptingReconnection = false
+                    self.lastKnownPeripheral = peripheral
+                    self.invalidateReconnectionTimer()
+                } else if self.connectedBeacon != nil && !self.isAttemptingReconnection {
+                    // Beacon was disconnected - start reconnection process
+                    self.startReconnectionProcess()
                 }
+                
                 self.connectedBeacon = peripheral
             }
             .store(in: &cancellables)
+    }
+    
+    private func startReconnectionProcess() {
+        guard reconnectionAttempts < maxReconnectionAttempts else {
+            // We've exceeded max attempts, notify disconnect
+            print("⚠️ Max reconnection attempts (\(maxReconnectionAttempts)) reached. Giving up.")
+            cleanup()
+            DispatchQueue.main.async {
+                self.onDisconnect?()
+            }
+            return
+        }
+        
+        reconnectionAttempts += 1
+        isAttemptingReconnection = true
+        
+        print("📶 Attempting to reconnect (Attempt \(reconnectionAttempts)/\(maxReconnectionAttempts))...")
+        
+        // Start scanning specifically for reconnection
+        bluetoothManager.startScanning(forReconnect: true)
+        
+        // Set a timer for this reconnection attempt
+        invalidateReconnectionTimer()
+        reconnectionTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { [weak self] _ in
+            guard let self = self else { return }
+            
+            // If we're still not connected after the timeout
+            if self.bluetoothManager.connectedBeacon == nil {
+                print("⏱️ Reconnection attempt \(self.reconnectionAttempts) timed out")
+                
+                // Stop scanning from this attempt
+                self.bluetoothManager.stopScanning()
+                
+                // Try again or give up
+                self.startReconnectionProcess()
+            }
+        }
+    }
+    
+    private func invalidateReconnectionTimer() {
+        reconnectionTimer?.invalidate()
+        reconnectionTimer = nil
     }
 
     func startMonitoringDistance() {
@@ -62,9 +118,13 @@ class BeaconFoundViewModel: NSObject, ObservableObject, AVSpeechSynthesizerDeleg
     }
 
     func cleanup() {
+        invalidateReconnectionTimer()
         bluetoothManager.reset()
         connectedBeacon = nil
+        lastKnownPeripheral = nil
         distance = 0.0
+        reconnectionAttempts = 0
+        isAttemptingReconnection = false
         cancellables.removeAll()
     }
 
@@ -129,8 +189,18 @@ class BeaconFoundViewModel: NSObject, ObservableObject, AVSpeechSynthesizerDeleg
 
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
         print("Failed to connect to \(peripheral.name ?? "unknown"): \(error?.localizedDescription ?? "unknown error")")
-        // Reset the connection state
-        connectedBeacon = nil
+        // Increment reconnection attempt counter
+        reconnectionAttempts += 1
+        
+        // Try to reconnect if we haven't exceeded max attempts
+        if reconnectionAttempts < maxReconnectionAttempts {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                self.bluetoothManager.connect(to: peripheral)
+            }
+        } else {
+            // Reset the connection state
+            connectedBeacon = nil
+        }
     }
 
     deinit {
