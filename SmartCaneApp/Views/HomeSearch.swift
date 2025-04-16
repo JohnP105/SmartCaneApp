@@ -120,7 +120,7 @@ struct HomeSearch: View {
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(.black.opacity(0.9))
 
-                    Text("Make sure your device’s Bluetooth is on")
+                    Text("Make sure your device's Bluetooth is on")
                         .font(.system(size: 16, weight: .regular))
                         .foregroundColor(.gray.opacity(0.85))
                 }
@@ -128,10 +128,29 @@ struct HomeSearch: View {
             }
         }
         .navigationBarBackButtonHidden(true)
-        .onChange(of: viewModel.searchState) {
-            if viewModel.searchState == .success {
+        .onAppear {
+            print("\n=== HOME SEARCH VIEW APPEARED ===")
+            // Reset animations when view appears
+            animateCircle = false
+            animateRipple = false
+            animateDots = false
+            
+            // Force check connection status when view appears
+            viewModel.checkExistingConnection()
+            
+            // Start animations after a tiny delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                animateCircle = true
+            }
+        }
+        .onChange(of: viewModel.searchState) { oldValue, newValue in
+            print("\n=== SEARCH STATE CHANGED ===")
+            print("From: \(oldValue)")
+            print("To: \(newValue)")
+            
+            if newValue == .success {
                 navViewModel.navigate(to: .beaconFound)
-            } else if viewModel.searchState == .failure {
+            } else if newValue == .failure {
                 navViewModel.navigate(to: .beaconNotFound)
             }
         }

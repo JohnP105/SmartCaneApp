@@ -66,8 +66,10 @@ public class BluetoothManager: NSObject, ObservableObject {
     }
     
     public func reset() {
+        print("\n=== RESETTING BLUETOOTH MANAGER ===")
         // Disconnect current beacon if any
         if let peripheral = connectedBeacon {
+            print("Disconnecting from: \(peripheral.name ?? "Unknown")")
             centralManager.cancelPeripheralConnection(peripheral)
         }
         // Clear discovered beacons
@@ -78,7 +80,9 @@ public class BluetoothManager: NSObject, ObservableObject {
         connectedBeacon = nil
         // Clear connecting peripherals
         connectingPeripherals.removeAll()
-        // Don't reset lastConnectedPeripheralId here as it might be useful for future reconnections
+        // Reset RSSI value
+        currentRSSI = 0
+        print("Bluetooth Manager reset complete")
     }
     
     // Retrieve a peripheral by UUID if possible

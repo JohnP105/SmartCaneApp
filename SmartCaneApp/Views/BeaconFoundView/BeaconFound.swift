@@ -18,7 +18,15 @@ struct BeaconFound: View {
             VStack(spacing: 0) {
                 // Back Button
                 BackNavigationBar(title: "Beacon Found") {
-                    viewModel.cleanup()
+                    print("\n=== NAVIGATING BACK FROM BEACON FOUND ===")
+                    // Complete cleanup of the beacon connection before navigating back
+                    viewModel.cleanup() // Standard cleanup
+                    
+                    // Get reference to bluetooth manager and reset it completely
+                    let bluetoothManager = BluetoothManager.shared
+                    bluetoothManager.reset() // Disconnect and clear current beacon
+                    
+                    // Now navigate back with startInSearchMode = false to avoid automatic searching
                     navViewModel.navigate(to: .homeSearch(startInSearchMode: false))
                 }
 
@@ -166,6 +174,14 @@ struct BeaconFound: View {
         .navigationBarBackButtonHidden(true)
         .onAppear {
             viewModel.onDisconnect = {
+                // Complete cleanup of the beacon connection before navigating to disconnected view
+                // No need to call viewModel.cleanup() here as it's already called before onDisconnect
+                
+                // Get reference to bluetooth manager and reset it completely
+                let bluetoothManager = BluetoothManager.shared
+                bluetoothManager.reset() // Disconnect and clear current beacon
+                
+                // Now navigate to disconnected view
                 navViewModel.navigate(to: .beaconDisconnected)
             }
         }

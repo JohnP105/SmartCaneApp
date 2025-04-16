@@ -18,6 +18,9 @@ class HomeSearchViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     init(startInSearchMode: Bool = false) {
+        // Check if already connected to a beacon at initialization
+        checkExistingConnection()
+        
         if startInSearchMode {
             startSearching()
         }
@@ -35,9 +38,41 @@ class HomeSearchViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+            
+        // Subscribe to connected beacon updates
+        bluetoothManager.$connectedBeacon
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] peripheral in
+                guard let self = self else { return }
+                if peripheral != nil && self.searchState != .success {
+                    // A beacon has been connected while we're in this view
+                    self.searchState = .success
+                    self.stopSearching()
+                }
+            }
+            .store(in: &cancellables)
+    }
+    
+    func checkExistingConnection() {
+        // If we already have a connected beacon when the view appears, 
+        // immediately show as successful
+        if let connectedBeacon = bluetoothManager.connectedBeacon {
+            print("\n=== EXISTING BEACON CONNECTION DETECTED ===")
+            print("Name: \(connectedBeacon.name ?? "Unknown")")
+            print("Setting search state to success")
+            searchState = .success
+        } else {
+            print("\n=== NO EXISTING BEACON CONNECTION ===")
+        }
     }
 
     func startSearching() {
+        // Check if a beacon is already connected before starting search
+        if bluetoothManager.connectedBeacon != nil {
+            searchState = .success
+            return
+        }
+        
         withAnimation {
             searchState = .searching
         }
@@ -56,7 +91,6 @@ class HomeSearchViewModel: ObservableObject {
                 }
             }
         }
-
     }
 
     func stopSearching() {
